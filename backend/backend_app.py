@@ -30,6 +30,21 @@ def id_generator():
     return 1
 
 
+def sort_posts(posts, sort_field=None, sort_direction='asc'):
+    if sort_direction not in ['asc', 'desc']:
+        raise ValueError(f"Invalid sort direction: {sort_direction}. Allowed values: 'asc', 'desc'.")
+
+    if sort_field:
+        if sort_field not in ['title', 'content']:
+            raise ValueError(f"Invalid sort field: {sort_field}. Allowed fields: 'title', 'content'.")
+        return sorted(
+            POSTS,
+            key=lambda post: post.get(sort_field, '').lower(),
+            reverse=(sort_direction == 'desc')
+        )
+    return posts
+
+
 @app.route('/api/posts', methods=['GET', 'POST'])
 def get_posts():
     if request.method == 'POST':
@@ -38,10 +53,19 @@ def get_posts():
             return jsonify({"error": "Invalid post"}), 400
 
         new_post['id'] = id_generator()
-
         POSTS.append(new_post)
+        return jsonify(POSTS), 201
 
-    return jsonify(POSTS), 200
+    # sort functionality for GET
+    sort_field = request.args.get('sort')
+    sort_direction = request.args.get('direction', 'asc').lower()
+
+    try:
+        sorted_posts = sort_posts(POSTS, sort_field, sort_direction)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+    return jsonify(sorted_posts), 200
 
 
 @app.route('/api/posts/<int:post_id>', methods=['DELETE'])
