@@ -41,7 +41,7 @@ def get_posts():
 
         POSTS.append(new_post)
 
-    return jsonify(POSTS), 201
+    return jsonify(POSTS), 200
 
 
 @app.route('/api/posts/<int:post_id>', methods=['DELETE'])
@@ -54,6 +54,33 @@ def delete_post(post_id):
     POSTS.remove(post)
 
     return jsonify({"message": f"Post with id {post_id} has been successfully deleted"}), 200
+
+
+@app.route('/api/posts/<int:post_id>', methods=['PUT'])
+def update_post(post_id):
+    post = find_post_by_id(post_id)
+
+    if post is None:
+        return jsonify({"message": f"Post with id {post_id} not found"}), 404
+
+    new_data = request.get_json()
+    post.update(new_data)
+
+    return jsonify(post), 200
+
+
+@app.route('/api/posts/search', methods=['GET'])
+def search_post():
+    title_query = request.args.get('title', '').strip()
+    content_query = request.args.get('content', '').strip()
+
+    filtered_posts = [
+        post for post in POSTS
+        if (title_query.lower() in post.get('title').lower() if title_query else True)
+        and
+           (content_query.lower() in post.get('content').lower() if content_query else True)
+    ]
+    return jsonify(filtered_posts), 200
 
 
 # error handling
