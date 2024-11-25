@@ -86,13 +86,13 @@ def manage_posts_v1(post_id):
 
         updated_data = request.get_json()
 
-        if 'date' in updated_data:
-            try:
-                datetime.strptime(updated_data['date'], '%Y-%m-%d')
-            except ValueError:
-                return jsonify({"error": "Invalid date format. us YYYY-MM-DD"})
+        post['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        post.update({key: value for key, value in updated_data.items() if key in ['title', 'content', 'date']})
+        allowed_fields = ['title', 'content']
+        for key, value in updated_data.items():
+            if key in allowed_fields:
+                post[key] = value
+
         save_posts(blog_posts)
 
         return jsonify(post), 200
@@ -107,8 +107,8 @@ def search_post_v1():
     filtered_posts = [
         post for post in posts
         if (title_query.lower() in post.get('title').lower() if title_query else True)
-           and
-           (content_query.lower() in post.get('content').lower() if content_query else True)
+        and
+        (content_query.lower() in post.get('content').lower() if content_query else True)
     ]
     return jsonify(filtered_posts), 200
 

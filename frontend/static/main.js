@@ -27,7 +27,15 @@ function loadPosts() {
             data.forEach(post => {
                 const postDiv = document.createElement('div');
                 postDiv.className = 'post';
-                postDiv.innerHTML = `<h2>${post.title}</h2><p>${post.content}</p><p style="font-size: 12px;">Created: ${post.date}</p>
+
+                let timestamps = `<p style="font-size: 12px;">Created: ${post.date}</p>`;
+                if (post.updated_at) {
+                    timestamps += `<p style="font-size: 12px;">Updated: ${post.updated_at}</p>`;
+                }
+
+
+                postDiv.innerHTML = `<h2>${post.title}</h2><p>${post.content}</p><p style="font-size: 14px;">Tags: ${post.tags}</p><p style="font-size: 12px;">Author: ${post.author}</p>
+                ${timestamps}
                 <button onclick="deletePost(${post.id})">Delete</button>`;
                 postContainer.appendChild(postDiv);
             });
@@ -41,12 +49,19 @@ function addPost() {
     var baseUrl = document.getElementById('api-base-url').value;
     var postTitle = document.getElementById('post-title').value;
     var postContent = document.getElementById('post-content').value;
+    var postAuthor = document.getElementById('post-author').value;
+    var postTags = document.getElementById('post-tags').value;
 
     // Use the Fetch API to send a POST request to the /posts endpoint
     fetch(baseUrl + '/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: postTitle, content: postContent })
+        body: JSON.stringify({
+        title: postTitle,
+        content: postContent,
+        author: postAuthor,
+        tags: postTags
+        })
     })
     .then(response => response.json())  // Parse the JSON data from the response
     .then(post => {

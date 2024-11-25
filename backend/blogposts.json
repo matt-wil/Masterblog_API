@@ -1,44 +1,19 @@
 [
     {
-        "title": "Matt",
-        "content": "Checking...",
-        "date": "2024-11-25 13:03:04",
+        "title": "Updated Post",
+        "content": "This post was updated via Postman",
+        "author": "Matt",
+        "tags": "API, Flask, Python, V1",
+        "date": "2024-11-25 17:38:57",
+        "id": 2,
+        "updated_at": "2024-11-25 18:00:49"
+    },
+    {
+        "title": "No. 2",
+        "content": "this is the second post for my blog!!!",
+        "author": "Matt",
+        "tags": "API, Flask, Python, V1",
+        "date": "2024-11-25 17:43:55",
         "id": 3
-    },
-    {
-        "title": "Matt",
-        "content": "Checking.........",
-        "date": "2024-11-25 13:03:22",
-        "id": 4
-    },
-    {
-        "title": "Matt",
-        "content": "Checking",
-        "date": "2024-11-25 13:05:22",
-        "id": 5
-    },
-    {
-        "title": "Matt",
-        "content": "Checking.....................................",
-        "date": "2024-11-25 13:05:30",
-        "id": 6
-    },
-    {
-        "title": "Bob",
-        "content": "Builder......",
-        "date": "2024-11-25 13:16:50",
-        "id": 7
-    },
-    {
-        "title": "Bob",
-        "content": "Builder......",
-        "date": "2024-11-25 13:16:53",
-        "id": 8
-    },
-    {
-        "title": "Most of it is done!",
-        "content": "We have V1 successfully completed",
-        "date": "2024-11-25 15:30:22",
-        "id": 9
     }
 ]
