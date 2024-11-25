@@ -29,6 +29,9 @@ def posts_v1():
         if not new_post.get('title') or not new_post.get('content'):
             return jsonify({"error": "Invalid post"}), 400
 
+        new_post['likes'] = 0
+        new_post['dislikes'] = 0
+        new_post['comments'] = []
         new_post['date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         new_post['id'] = id_generator(blog_posts)
         blog_posts.append(new_post)
@@ -111,6 +114,30 @@ def search_post_v1():
         (content_query.lower() in post.get('content').lower() if content_query else True)
     ]
     return jsonify(filtered_posts), 200
+
+
+@app.route('/api/v1/posts/<int:post_id>/like', methods=['POST'])
+def like(post_id):
+    posts = read_posts()
+    post = find_post_by_id(post_id, posts)
+    if not post:
+        return jsonify({"error": "Post not found"}), 404
+
+    post['likes'] = post.get('likes', 0) + 1
+    save_posts(posts)
+    return jsonify({"message": "Post liked!", "likes": post['likes']}), 200
+
+
+@app.route('/api/v1/posts/<int:post_id>/dislike', methods=['POST'])
+def dislike(post_id):
+    posts = read_posts()
+    post = find_post_by_id(post_id, posts)
+    if not post:
+        return jsonify({"error": "Post not found"}), 404
+
+    post['dislikes'] = post.get('dislikes', 0) + 1
+    save_posts(posts)
+    return jsonify({"message": "Post dislike!", "dislikes": post['dislikes']}), 200
 
 
 # error handling

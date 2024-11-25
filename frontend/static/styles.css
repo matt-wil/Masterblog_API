@@ -3,6 +3,10 @@
     font-family: 'Poppins', sans-serif;
 }
 
+.kill-styles {
+    all: unset;
+}
+
 body {
     background-color: #f5f5f5;
     margin: 0;
@@ -91,7 +95,7 @@ body {
 }
 
 .post button {
-    position: absolute;
+    display: flex-col;
     top: 10px;
     right: 10px;
     background-color: #ff4444;

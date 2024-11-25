@@ -28,15 +28,39 @@ function loadPosts() {
                 const postDiv = document.createElement('div');
                 postDiv.className = 'post';
 
+                // Add Timestamp for created and dynamically for updated.
                 let timestamps = `<p style="font-size: 12px;">Created: ${post.date}</p>`;
                 if (post.updated_at) {
                     timestamps += `<p style="font-size: 12px;">Updated: ${post.updated_at}</p>`;
                 }
 
+                // Generate comments
+                let commentsHtml = `
+                <div class="comments">
+                    <h4>Comments</h4>
+                        ${post.comments?.map(comment => `<p><strong>${comment.author}:</strong> ${comment.content}</p>`).join('') || ''}
+                        <input type="text" id="comment-${post.id}" placeholder="Add a comment">
+                        <button onclick="addComment(${post.id})" style="background-color: #4CAF50;">Add Comment</button>
+                </div>`;
+
 
                 postDiv.innerHTML = `<h2>${post.title}</h2><p>${post.content}</p><p style="font-size: 14px;">Tags: ${post.tags}</p><p style="font-size: 12px;">Author: ${post.author}</p>
                 ${timestamps}
-                <button onclick="deletePost(${post.id})">Delete</button>`;
+                <button onclick="updatePost(${post.id})" style="background-color: #FFA500;">Update</button>
+                <button onclick="deletePost(${post.id})">Delete</button>
+                <p>
+                    <span class="likes-count">${post.likes || 0}</span>
+                    <img src="static/assets/heart-solid.svg" style="width: 16px; height: 16px;">
+                    <button onclick="likePost(${post.id})" style="background-color: #4CAF50">
+                        Like
+                    </button>
+                    <span class="dislikes-count">${post.dislikes || 0}</span>
+                    <img src="static/assets/heart-crack-solid.svg" style="width: 16px; height: 16px;">
+                    <button onclick="dislikePost(${post.id})">
+                        Dislike
+                    </button>
+                </p>
+                ${commentsHtml}`;
                 postContainer.appendChild(postDiv);
             });
         })
@@ -84,4 +108,61 @@ function deletePost(postId) {
         loadPosts(); // Reload the posts after deleting one
     })
     .catch(error => console.error('Error:', error));  // If an error occurs, log it to the console
+}
+
+function likePost(postId) {
+    const baseUrl = document.getElementById('api-base-url').value;
+    fetch(`${baseUrl}/posts/${postId}/like`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Post liked:', data);
+            loadPosts();
+        })
+        .catch(error => console.error('Error liking post', error));
+}
+
+function dislikePost (postId) {
+    const baseUrl = document.getElementById('api-base-url').value;
+    fetch(`${baseUrl}/posts/${postId}/dislike`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Post disliked:', data);
+            loadPosts();
+        })
+        .catch(error => console.error('Error disliking post:', error));
+}
+
+function addComment(postId) {
+    const baseUrl = document.getElementById('api-base-url').value;
+    const commentContent = document.getElementById(`comment-${postId}`).value;
+
+    fetch(`${baseUrl}/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ author: 'Anonymous', content: commentContent })
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Comment added:', data);
+            loadPosts();
+        })
+        .catch(error => console.error('Error adding comment', error));
+}
+
+function updatePost(postId) {
+    const baseUrl = document.getElementById('api-base-url').value;
+    const newTitle = prompt('Enter a new title:');
+    const newContent = prompt('Enter new content:');
+
+    fetch(`${baseUrl}/posts/${postId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newTitle, content: newContent })
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Post updated:', data);
+            loadPosts();
+        })
+        .catch(error => console.error('Error updating post:', error));
 }

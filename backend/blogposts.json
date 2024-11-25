@@ -1,19 +1,14 @@
 [
     {
-        "title": "Updated Post",
-        "content": "This post was updated via Postman",
+        "title": "My Updated Post",
+        "content": "This new content was created from the prompting in JavaScript",
         "author": "Matt",
-        "tags": "API, Flask, Python, V1",
-        "date": "2024-11-25 17:38:57",
-        "id": 2,
-        "updated_at": "2024-11-25 18:00:49"
-    },
-    {
-        "title": "No. 2",
-        "content": "this is the second post for my blog!!!",
-        "author": "Matt",
-        "tags": "API, Flask, Python, V1",
-        "date": "2024-11-25 17:43:55",
-        "id": 3
+        "tags": "API, Flask",
+        "likes": 9,
+        "dislikes": 5,
+        "comments": [],
+        "date": "2024-11-25 19:30:23",
+        "id": 1,
+        "updated_at": "2024-11-25 20:30:31"
     }
 ]
