@@ -140,6 +140,30 @@ def dislike(post_id):
     return jsonify({"message": "Post dislike!", "dislikes": post['dislikes']}), 200
 
 
+@app.route('/api/v1/posts/<int:post_id>/comments', methods=['POST'])
+def add_comment(post_id):
+    posts = read_posts()
+    post = find_post_by_id(post_id, posts)
+
+    if not post:
+        return jsonify({"error": "Post not found"}), 404
+
+    new_comment = request.get_json()
+    if not new_comment or not new_comment.get('content'):
+        return jsonify({"error": "Invalid comment data"})
+
+    post.setdefault('comments', [])
+
+    new_comment['id'] = id_generator(post['comments'])
+    new_comment['date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    post['comments'].append(new_comment)
+
+    save_posts(posts)
+
+    return jsonify(new_comment), 201
+
+
 # error handling
 @app.errorhandler(404)
 def not_found_error(error):

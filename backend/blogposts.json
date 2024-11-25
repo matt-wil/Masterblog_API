@@ -4,9 +4,22 @@
         "content": "This new content was created from the prompting in JavaScript",
         "author": "Matt",
         "tags": "API, Flask",
-        "likes": 9,
+        "likes": 53,
         "dislikes": 5,
-        "comments": [],
+        "comments": [
+            {
+                "author": "Anonymous",
+                "content": "Hello there",
+                "id": 1,
+                "date": "2024-11-25 22:08:18"
+            },
+            {
+                "author": "Anonymous",
+                "content": "wonderful",
+                "id": 2,
+                "date": "2024-11-25 22:08:34"
+            }
+        ],
         "date": "2024-11-25 19:30:23",
         "id": 1,
         "updated_at": "2024-11-25 20:30:31"

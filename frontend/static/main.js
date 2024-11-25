@@ -37,8 +37,8 @@ function loadPosts() {
                 // Generate comments
                 let commentsHtml = `
                 <div class="comments">
-                    <h4>Comments</h4>
-                        ${post.comments?.map(comment => `<p><strong>${comment.author}:</strong> ${comment.content}</p>`).join('') || ''}
+                    <h4>Comments:</h4>
+                        ${post.comments?.map(comment => `<p style="font-size: 14px;"><strong>${comment.author}:</strong> ${comment.content}</p>`).join('') || ''}
                         <input type="text" id="comment-${post.id}" placeholder="Add a comment">
                         <button onclick="addComment(${post.id})" style="background-color: #4CAF50;">Add Comment</button>
                 </div>`;
