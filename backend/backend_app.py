@@ -1,14 +1,15 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from utilities import find_post_by_id, id_generator
 from datetime import datetime
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_swagger_ui import get_swaggerui_blueprint
 
 # Temporary db
 from file_handling import read_posts, save_posts
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 limiter = Limiter(
     get_remote_address,
     app=app,
@@ -17,8 +18,8 @@ limiter = Limiter(
 CORS(app)  # This will enable CORS for all routes
 
 
-@app.route('/api/posts', methods=['GET', 'POST'])
-def posts():
+@app.route('/api/v1/posts', methods=['GET', 'POST'])
+def posts_v1():
     blog_posts = read_posts()
 
     # Handle adding a new post
@@ -36,10 +37,16 @@ def posts():
         return jsonify(new_post), 201
 
     # Sorting
-    sort_field = request.args.get('sort', 'date')
+    valid_sort_fields = ['title', 'content']
+    valid_sort_direction = ['asc', 'desc']
+    sort_field = request.args.get('sort')
     sort_direction = request.args.get('direction', 'asc').lower()
 
-    if sort_field in ['date', 'title']:
+    if sort_field and sort_field not in valid_sort_fields:
+        return jsonify({"error": f"Invalid sort field... Must be one of {valid_sort_fields}"})
+    if sort_direction and sort_direction not in valid_sort_direction:
+        return jsonify({"error": f"Invalid sort field... Must be one of {valid_sort_direction}"})
+    if sort_field:
         blog_posts.sort(key=lambda x: x.get(sort_field, ''), reverse=(sort_direction == 'desc'))
 
     # Pagination
@@ -58,8 +65,8 @@ def posts():
     return jsonify(paginated_posts), 200
 
 
-@app.route('/api/posts/<int:post_id>', methods=['DELETE', 'PUT'])
-def manage_posts(post_id):
+@app.route('/api/v1/posts/<int:post_id>', methods=['DELETE', 'PUT'])
+def manage_posts_v1(post_id):
     blog_posts = read_posts()
 
     if request.method == 'DELETE':
@@ -91,8 +98,8 @@ def manage_posts(post_id):
         return jsonify(post), 200
 
 
-@app.route('/api/posts/search', methods=['GET'])
-def search_post():
+@app.route('/api/v1/posts/search', methods=['GET'])
+def search_post_v1():
     posts = read_posts()
     title_query = request.args.get('title', '').strip().lower()
     content_query = request.args.get('content', '').strip().lower()
@@ -120,6 +127,24 @@ def method_not_allowed_error(error):
 @app.errorhandler(500)
 def internal_server_error(error):
     return jsonify({"error": "Internal Server Error."}), 500
+
+
+@app.route('/static/masterblog.json', methods=['GET'])
+def serve_masterblog_json():
+    return send_from_directory('static', 'masterblog.json')
+
+
+SWAGGER_URL = "/api/docs"
+API_URL = "/static/masterblog.json"
+
+swagger_ui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': 'Masterblog_API'
+    }
+)
+app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
 
 
 if __name__ == '__main__':

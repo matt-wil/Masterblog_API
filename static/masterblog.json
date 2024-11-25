@@ -1,0 +1,264 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Masterblog API",
+    "version": "1.0.0"
+  },
+  "servers": [{ "url": "http://localhost:5002" }],
+  "tags": [{ "name": "Post", "description": "Post API - CRUD" }],
+  "paths": {
+    "/api/posts": {
+      "get": {
+        "summary": "Get blog posts",
+        "description": "Retrieve a paginated and optionally sorted list of blog posts.",
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Field to sort by (date or title). Default is date.",
+            "schema": {
+              "type": "string",
+              "enum": ["date", "title"]
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "description": "Sort direction (asc or desc). Default is asc.",
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination. Default is 1.",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of items per page. Default is 10.",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of blog posts",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": 1,
+                    "title": "Example Post",
+                    "content": "This is an example post.",
+                    "date": "2023-01-01 10:00:00"
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid page or limit",
+            "content": {
+              "application/json": {
+                "example": { "error": "Invalid page or limit" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new blog post",
+        "description": "Add a new blog post to the database.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "content": { "type": "string" }
+                },
+                "required": ["title", "content"]
+              },
+              "example": {
+                "title": "My New Post",
+                "content": "This is the content of my new post."
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Post created",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": 2,
+                  "title": "My New Post",
+                  "content": "This is the content of my new post.",
+                  "date": "2023-01-01 10:05:00"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid post",
+            "content": {
+              "application/json": {
+                "example": { "error": "Invalid post" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/posts/{post_id}": {
+      "delete": {
+        "summary": "Delete a blog post",
+        "description": "Remove a blog post by ID.",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the post to delete",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post deleted",
+            "content": {
+              "application/json": {
+                "example": { "message": "Post Deleted." }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found",
+            "content": {
+              "application/json": {
+                "example": { "message": "Post not found." }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a blog post",
+        "description": "Update the content, title, or date of a blog post by ID.",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the post to update",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "content": { "type": "string" },
+                  "date": { "type": "string", "format": "date-time" }
+                }
+              },
+              "example": {
+                "title": "Updated Post Title",
+                "content": "Updated content.",
+                "date": "2023-01-01 10:10:00"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Post updated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": 1,
+                  "title": "Updated Post Title",
+                  "content": "Updated content.",
+                  "date": "2023-01-01 10:10:00"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found",
+            "content": {
+              "application/json": {
+                "example": { "message": "Post not found." }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid date format",
+            "content": {
+              "application/json": {
+                "example": { "error": "Invalid date format. Use YYYY-MM-DD" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/posts/search": {
+      "get": {
+        "summary": "Search blog posts",
+        "description": "Search for blog posts by title or content.",
+        "parameters": [
+          {
+            "name": "title",
+            "in": "query",
+            "description": "Search by title",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "content",
+            "in": "query",
+            "description": "Search by content",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Filtered list of blog posts",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": 1,
+                    "title": "Example Post",
+                    "content": "This is an example post.",
+                    "date": "2023-01-01 10:00:00"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
