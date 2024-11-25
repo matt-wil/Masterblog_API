@@ -1,107 +1,106 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from utilities import find_post_by_id, id_generator
+from datetime import datetime
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+# Temporary db
+from file_handling import read_posts, save_posts
 
 app = Flask(__name__)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["50 per minute"]
+)
 CORS(app)  # This will enable CORS for all routes
-
-POSTS = [
-    {"id": 1, "title": "First post", "content": "This is the first post."},
-    {"id": 2, "title": "Second post", "content": "This is the second post."},
-]
-
-
-# Utility functions
-def validate_post_data(data):
-    if not data.get("title") or not data.get("content"):
-        return False
-    return True
-
-
-def find_post_by_id(post_id):
-    for post in POSTS:
-        if post.get('id') == post_id:
-            return post
-    return None
-
-
-def id_generator():
-    if POSTS:
-        return max(post['id'] for post in POSTS) + 1
-    return 1
-
-
-def sort_posts(posts, sort_field=None, sort_direction='asc'):
-    if sort_direction not in ['asc', 'desc']:
-        raise ValueError(f"Invalid sort direction: {sort_direction}. Allowed values: 'asc', 'desc'.")
-
-    if sort_field:
-        if sort_field not in ['title', 'content']:
-            raise ValueError(f"Invalid sort field: {sort_field}. Allowed fields: 'title', 'content'.")
-        return sorted(
-            POSTS,
-            key=lambda post: post.get(sort_field, '').lower(),
-            reverse=(sort_direction == 'desc')
-        )
-    return posts
 
 
 @app.route('/api/posts', methods=['GET', 'POST'])
-def get_posts():
+def posts():
+    blog_posts = read_posts()
+
+    # Handle adding a new post
     if request.method == 'POST':
         new_post = request.get_json()
-        if not validate_post_data(new_post):
+
+        if not new_post.get('title') or not new_post.get('content'):
             return jsonify({"error": "Invalid post"}), 400
 
-        new_post['id'] = id_generator()
-        POSTS.append(new_post)
-        return jsonify(POSTS), 201
+        new_post['date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        new_post['id'] = id_generator(blog_posts)
+        blog_posts.append(new_post)
+        save_posts(blog_posts)
 
-    # sort functionality for GET
-    sort_field = request.args.get('sort')
+        return jsonify(new_post), 201
+
+    # Sorting
+    sort_field = request.args.get('sort', 'date')
     sort_direction = request.args.get('direction', 'asc').lower()
 
+    if sort_field in ['date', 'title']:
+        blog_posts.sort(key=lambda x: x.get(sort_field, ''), reverse=(sort_direction == 'desc'))
+
+    # Pagination
     try:
-        sorted_posts = sort_posts(POSTS, sort_field, sort_direction)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        page = int(request.args.get('page', 1))
+        limit = int(request.args.get('limit', 10))
+        if page < 1 or limit < 1:
+            raise ValueError
+    except ValueError:
+        return jsonify({"error": "Invalid page or limit"}), 400
 
-    return jsonify(sorted_posts), 200
+    start = (page - 1) * limit
+    end = start + limit
+    paginated_posts = blog_posts[start:end]
 
-
-@app.route('/api/posts/<int:post_id>', methods=['DELETE'])
-def delete_post(post_id):
-    post = find_post_by_id(post_id)
-
-    if post is None:
-        return jsonify({"message": f"Post with id {post_id} not found"}), 404
-
-    POSTS.remove(post)
-
-    return jsonify({"message": f"Post with id {post_id} has been successfully deleted"}), 200
+    return jsonify(paginated_posts), 200
 
 
-@app.route('/api/posts/<int:post_id>', methods=['PUT'])
-def update_post(post_id):
-    post = find_post_by_id(post_id)
+@app.route('/api/posts/<int:post_id>', methods=['DELETE', 'PUT'])
+def manage_posts(post_id):
+    blog_posts = read_posts()
 
-    if post is None:
-        return jsonify({"message": f"Post with id {post_id} not found"}), 404
+    if request.method == 'DELETE':
+        post = find_post_by_id(post_id, blog_posts)
+        if post is None:
+            return jsonify({"message": "Post not found."}), 404
 
-    new_data = request.get_json()
-    post.update(new_data)
+        blog_posts.remove(post)
+        save_posts(blog_posts)
+        return jsonify({"message": "Post Deleted."}), 200
 
-    return jsonify(post), 200
+    # update route
+    if request.method == 'PUT':
+        post = find_post_by_id(post_id, blog_posts)
+        if post is None:
+            return jsonify({"message": "Post not found."}), 404
+
+        updated_data = request.get_json()
+
+        if 'date' in updated_data:
+            try:
+                datetime.strptime(updated_data['date'], '%Y-%m-%d')
+            except ValueError:
+                return jsonify({"error": "Invalid date format. us YYYY-MM-DD"})
+
+        post.update({key: value for key, value in updated_data.items() if key in ['title', 'content', 'date']})
+        save_posts(blog_posts)
+
+        return jsonify(post), 200
 
 
 @app.route('/api/posts/search', methods=['GET'])
 def search_post():
-    title_query = request.args.get('title', '').strip()
-    content_query = request.args.get('content', '').strip()
+    posts = read_posts()
+    title_query = request.args.get('title', '').strip().lower()
+    content_query = request.args.get('content', '').strip().lower()
 
     filtered_posts = [
-        post for post in POSTS
+        post for post in posts
         if (title_query.lower() in post.get('title').lower() if title_query else True)
-        and
+           and
            (content_query.lower() in post.get('content').lower() if content_query else True)
     ]
     return jsonify(filtered_posts), 200
@@ -116,6 +115,11 @@ def not_found_error(error):
 @app.errorhandler(405)
 def method_not_allowed_error(error):
     return jsonify({"error": "Method Not Allowed"}), 405
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return jsonify({"error": "Internal Server Error."}), 500
 
 
 if __name__ == '__main__':
