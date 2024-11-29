@@ -14,6 +14,14 @@
             <input type="text" id="api-base-url" placeholder="Enter API Base URL" value="http://127.0.0.1:5002/api/v1">
             <button onclick="loadPosts()">Load Posts</button>
         </div>
+        <h2>Search</h2>
+        <div class="input-field">
+            <input type="text" id="search-title" placeholder="Search by title">
+            <input type="text" id="search-content" placeholder="Search by content">
+            <button onclick="searchPosts()">Search</button>
+            <button onclick="loadPosts()">Clear Search</button>
+        </div>
+        <h2>Add</h2>
         <div class="input-field">
             <input type="text" id="post-title" placeholder="Enter Post Title">
             <input type="text" id="post-author" placeholder="Enter Post Author">

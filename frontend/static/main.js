@@ -43,7 +43,7 @@ function loadPosts() {
                         <button onclick="addComment(${post.id})" style="background-color: #4CAF50;">Add Comment</button>
                 </div>`;
 
-
+                // Render the content of the posts
                 postDiv.innerHTML = `<h2>${post.title}</h2><p>${post.content}</p><p style="font-size: 14px;">Tags: ${post.tags}</p><p style="font-size: 12px;">Author: ${post.author}</p>
                 ${timestamps}
                 <button onclick="updatePost(${post.id})" style="background-color: #FFA500;">Update</button>
@@ -110,6 +110,7 @@ function deletePost(postId) {
     .catch(error => console.error('Error:', error));  // If an error occurs, log it to the console
 }
 
+// Function to send a POST request to the API liking a post
 function likePost(postId) {
     const baseUrl = document.getElementById('api-base-url').value;
     fetch(`${baseUrl}/posts/${postId}/like`, { method: 'POST' })
@@ -121,6 +122,7 @@ function likePost(postId) {
         .catch(error => console.error('Error liking post', error));
 }
 
+// Function to send a POST request to the API disliking a post
 function dislikePost (postId) {
     const baseUrl = document.getElementById('api-base-url').value;
     fetch(`${baseUrl}/posts/${postId}/dislike`, { method: 'POST' })
@@ -132,6 +134,7 @@ function dislikePost (postId) {
         .catch(error => console.error('Error disliking post:', error));
 }
 
+// Function to send POST request to add a comment to a post
 function addComment(postId) {
     const baseUrl = document.getElementById('api-base-url').value;
     const commentContent = document.getElementById(`comment-${postId}`).value;
@@ -149,11 +152,16 @@ function addComment(postId) {
         .catch(error => console.error('Error adding comment', error));
 }
 
+// Function to send PUT request and update a post in the API
 function updatePost(postId) {
     const baseUrl = document.getElementById('api-base-url').value;
     const newTitle = prompt('Enter a new title:');
     const newContent = prompt('Enter new content:');
 
+    if (!newTitle || !newContent) {
+        alert("Title and content can not be empty. The post was not updated.");
+        return
+    }
     fetch(`${baseUrl}/posts/${postId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -165,4 +173,71 @@ function updatePost(postId) {
             loadPosts();
         })
         .catch(error => console.error('Error updating post:', error));
+}
+
+// Function to send GET requests to the API in to filter posts
+function searchPosts() {
+    const baseUrl = document.getElementById('api-base-url').value;
+    const titleQuery = document.getElementById('search-title').value;
+    const contentQuery = document.getElementById('search-content').value;
+
+    // Build the query string dynamically
+    const queryParams = [];
+    if (titleQuery) queryParams.push(`title=${encodeURIComponent(titleQuery)}`);
+    if (contentQuery) queryParams.push(`content=${encodeURIComponent(contentQuery)}`);
+    const queryString = queryParams.length ? `?${queryParams.join('&')}` : '';
+
+    fetch(`${baseUrl}/posts/search${queryString}`)
+        .then(response => response.json())
+        .then(data => {
+            const postContainer = document.getElementById('post-container');
+            postContainer.innerHTML = '';
+
+            // Render the filtered posts
+            if (data.length === 0) {
+                postContainer.innerHTML = '<p>No posts found matching your search criteria.</p>';
+                return;
+            }
+
+                        data.forEach(post => {
+                const postDiv = document.createElement('div');
+                postDiv.className = 'post';
+
+                // Add Timestamp for created and dynamically for updated.
+                let timestamps = `<p style="font-size: 12px;">Created: ${post.date}</p>`;
+                if (post.updated_at) {
+                    timestamps += `<p style="font-size: 12px;">Updated: ${post.updated_at}</p>`;
+                }
+
+                // Generate comments
+                let commentsHtml = `
+                <div class="comments">
+                    <h4>Comments:</h4>
+                        ${post.comments?.map(comment => `<p style="font-size: 14px;"><strong>${comment.author}:</strong> ${comment.content}</p>`).join('') || ''}
+                        <input type="text" id="comment-${post.id}" placeholder="Add a comment">
+                        <button onclick="addComment(${post.id})" style="background-color: #4CAF50;">Add Comment</button>
+                </div>`;
+
+
+                postDiv.innerHTML = `<h2>${post.title}</h2><p>${post.content}</p><p style="font-size: 14px;">Tags: ${post.tags}</p><p style="font-size: 12px;">Author: ${post.author}</p>
+                ${timestamps}
+                <button onclick="updatePost(${post.id})" style="background-color: #FFA500;">Update</button>
+                <button onclick="deletePost(${post.id})">Delete</button>
+                <p>
+                    <span class="likes-count">${post.likes || 0}</span>
+                    <img src="static/assets/heart-solid.svg" style="width: 16px; height: 16px;">
+                    <button onclick="likePost(${post.id})" style="background-color: #4CAF50">
+                        Like
+                    </button>
+                    <span class="dislikes-count">${post.dislikes || 0}</span>
+                    <img src="static/assets/heart-crack-solid.svg" style="width: 16px; height: 16px;">
+                    <button onclick="dislikePost(${post.id})">
+                        Dislike
+                    </button>
+                </p>
+                ${commentsHtml}`;
+                postContainer.appendChild(postDiv);
+            });
+        })
+        .catch(error => console.error('Error:', error));  // If an error occurs, log it to the console
 }

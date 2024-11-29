@@ -20,6 +20,15 @@ CORS(app)  # This will enable CORS for all routes
 
 @app.route('/api/v1/posts', methods=['GET', 'POST'])
 def posts_v1():
+    """
+    The posts route to handle adding posts and seeing all posts.
+
+    HTTP methods:
+        - GET: Retrieves a list of posts.
+        - POST: Adds a post to the list of posts.
+
+    :return:
+    """
     blog_posts = read_posts()
 
     # Handle adding a new post

@@ -4,7 +4,7 @@
         "content": "This new content was created from the prompting in JavaScript",
         "author": "Matt",
         "tags": "API, Flask",
-        "likes": 53,
+        "likes": 57,
         "dislikes": 5,
         "comments": [
             {
@@ -23,5 +23,54 @@
         "date": "2024-11-25 19:30:23",
         "id": 1,
         "updated_at": "2024-11-25 20:30:31"
+    },
+    {
+        "title": "Blog 1",
+        "content": "This is a test post to see if everything works still with the search implemented",
+        "author": "Matt",
+        "tags": "API, Flask, JavaScript",
+        "likes": 14,
+        "dislikes": 0,
+        "comments": [
+            {
+                "author": "Anonymous",
+                "content": "It all works ",
+                "id": 1,
+                "date": "2024-11-25 22:26:01"
+            }
+        ],
+        "date": "2024-11-25 22:25:46",
+        "id": 2
+    },
+    {
+        "title": "Saby Smells Wonderful",
+        "content": "Like beautiful flowers",
+        "author": "Matt",
+        "tags": "Wifey",
+        "likes": 9,
+        "dislikes": 0,
+        "comments": [
+            {
+                "author": "Anonymous",
+                "content": "Yes she does",
+                "id": 1,
+                "date": "2024-11-25 22:35:21"
+            },
+            {
+                "author": "Anonymous",
+                "content": "i know right",
+                "id": 2,
+                "date": "2024-11-25 22:35:30"
+            },
+            {
+                "author": "Anonymous",
+                "content": "proper",
+                "id": 3,
+                "date": "2024-11-25 22:35:35"
+            }
+        ],
+        "date": "2024-11-25 22:35:10",
+        "id": 4,
+        "updated_at": "2024-11-25 22:36:06"
     }
 ]
