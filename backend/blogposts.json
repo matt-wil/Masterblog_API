@@ -29,7 +29,7 @@
         "content": "This is a test post to see if everything works still with the search implemented",
         "author": "Matt",
         "tags": "API, Flask, JavaScript",
-        "likes": 14,
+        "likes": 64,
         "dislikes": 0,
         "comments": [
             {

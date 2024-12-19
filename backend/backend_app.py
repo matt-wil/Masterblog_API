@@ -21,13 +21,18 @@ CORS(app)  # This will enable CORS for all routes
 @app.route('/api/v1/posts', methods=['GET', 'POST'])
 def posts_v1():
     """
-    The posts route to handle adding posts and seeing all posts.
+    Handle GET and POST requests for posts.
 
-    HTTP methods:
-        - GET: Retrieves a list of posts.
-        - POST: Adds a post to the list of posts.
+    GET /api/v1/posts
+    Returns a list of posts, which can be sorted by title or content in ascending or descending order.
+    The list can be paginated by specifying the page and limit query parameters.
 
-    :return:
+    POST /api/v1/posts
+    Adds a new post. The post must have a title and content. Returns the newly added post with a 201 status code.
+
+    Error Codes:
+        400: Invalid post, invalid sort field, invalid sort direction, invalid page, or invalid limit.
+        404: Post not found.
     """
     blog_posts = read_posts()
 
@@ -59,7 +64,8 @@ def posts_v1():
     if sort_direction and sort_direction not in valid_sort_direction:
         return jsonify({"error": f"Invalid sort field... Must be one of {valid_sort_direction}"})
     if sort_field:
-        blog_posts.sort(key=lambda x: x.get(sort_field, ''), reverse=(sort_direction == 'desc'))
+        blog_posts.sort(key=lambda x: x.get(sort_field, ''),
+                        reverse=(sort_direction == 'desc'))
 
     # Pagination
     try:
@@ -79,6 +85,14 @@ def posts_v1():
 
 @app.route('/api/v1/posts/<int:post_id>', methods=['DELETE', 'PUT'])
 def manage_posts_v1(post_id):
+    """
+    DELETE /api/v1/posts/<int:post_id>
+    Deletes a post given the ID. Returns a 404 if the post is not found, or a 200 if the post is deleted.
+
+    PUT /api/v1/posts/<int:post_id>
+    Updates a post given the ID. Returns a 404 if the post is not found, or a 200 if the post is updated.
+    The fields that can be updated are title and content.
+    """
     blog_posts = read_posts()
 
     if request.method == 'DELETE':
@@ -112,6 +126,17 @@ def manage_posts_v1(post_id):
 
 @app.route('/api/v1/posts/search', methods=['GET'])
 def search_post_v1():
+    """
+    GET /api/v1/posts/search
+    Returns a list of posts that match a given title or content query.
+
+    Returns:
+        A list of posts that match the given title and content query.
+
+    Example:
+        GET /api/v1/posts/search?title=hello&content=world
+        Returns a list of posts with title "hello" and content "world".
+    """
     posts = read_posts()
     title_query = request.args.get('title', '').strip().lower()
     content_query = request.args.get('content', '').strip().lower()
@@ -120,13 +145,28 @@ def search_post_v1():
         post for post in posts
         if (title_query.lower() in post.get('title').lower() if title_query else True)
         and
-        (content_query.lower() in post.get('content').lower() if content_query else True)
+        (content_query.lower() in post.get(
+            'content').lower() if content_query else True)
     ]
     return jsonify(filtered_posts), 200
 
 
 @app.route('/api/v1/posts/<int:post_id>/like', methods=['POST'])
 def like(post_id):
+    """
+    POST /api/v1/posts/<int:post_id>/like
+    Likes a given post.
+
+    Parameters:
+        post_id (int): The ID of the post to like.
+
+    Returns:
+        A JSON object containing a message and the updated number of likes.
+
+    Example:
+        POST /api/v1/posts/1/like
+        Returns a JSON object with a message and the updated number of likes.
+    """
     posts = read_posts()
     post = find_post_by_id(post_id, posts)
     if not post:
@@ -139,6 +179,20 @@ def like(post_id):
 
 @app.route('/api/v1/posts/<int:post_id>/dislike', methods=['POST'])
 def dislike(post_id):
+    """
+    POST /api/v1/posts/<int:post_id>/dislike
+    Dislikes a given post.
+
+    Parameters:
+        post_id (int): The ID of the post to dislike.
+
+    Returns:
+        A JSON object containing a message and the updated number of dislikes.
+
+    Example:
+        POST /api/v1/posts/1/dislike
+        Returns a JSON object with a message and the updated number of dislikes.
+    """
     posts = read_posts()
     post = find_post_by_id(post_id, posts)
     if not post:
@@ -151,6 +205,20 @@ def dislike(post_id):
 
 @app.route('/api/v1/posts/<int:post_id>/comments', methods=['POST'])
 def add_comment(post_id):
+    """
+    POST /api/v1/posts/<int:post_id>/comments
+    Adds a comment to a given post.
+
+    Parameters:
+        post_id (int): The ID of the post to add the comment to.
+
+    Returns:
+        A JSON object containing the newly added comment.
+
+    Example:
+        POST /api/v1/posts/1/comments
+        Returns a JSON object containing the newly added comment.
+    """
     posts = read_posts()
     post = find_post_by_id(post_id, posts)
 
@@ -176,21 +244,39 @@ def add_comment(post_id):
 # error handling
 @app.errorhandler(404)
 def not_found_error(error):
+    """
+    Handles 404 errors.
+    Returns a JSON object containing a message and status code of 404.
+    """
     return jsonify({"error": "Not Found"}), 404
 
 
 @app.errorhandler(405)
 def method_not_allowed_error(error):
+    """
+    Handles 405 errors.
+    Returns a JSON object containing a message and status code of 405.
+    """
     return jsonify({"error": "Method Not Allowed"}), 405
 
 
 @app.errorhandler(500)
 def internal_server_error(error):
+    """
+    Handles 500 errors.
+    Returns a JSON object containing a message and status code of 500.
+    """
     return jsonify({"error": "Internal Server Error."}), 500
 
 
 @app.route('/static/masterblog.json', methods=['GET'])
 def serve_masterblog_json():
+    """
+    Serves the masterblog.json file which is used by Swagger UI to generate the documentation.
+
+    Returns:
+        The contents of the masterblog.json file.
+    """
     return send_from_directory('static', 'masterblog.json')
 
 
